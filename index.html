@@ -53,7 +53,7 @@
         <section class="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-emerald-500/5 pointer-events-none"></div>
 
-            <!-- 🔑 API Credentials Card (Now Always Visible) -->
+            <!-- 🔑 API Credentials Card (Always Visible) -->
             <div class="bg-slate-950/80 border border-slate-900 rounded-2xl p-5 z-10">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                     🔑 Security Credentials
@@ -66,30 +66,41 @@
                 </div>
             </div>
 
-            <!-- Configuration Options -->
+            <!-- 🎛️ Language Configuration Options (Cantonese, Putonghua, English, Urdu) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10 bg-slate-950/40 p-5 rounded-2xl border border-slate-900/60">
                 <div class="flex flex-col">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Live Audio Model</span>
-                    <select id="modelSelect" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option value="models/gemini-3.5-live-translate-preview">Gemini 3.5 Live Translate (Preview)</option>
-                        <option value="models/gemini-3.1-flash-live-preview">Gemini 3.1 Flash Live (Preview)</option>
-                        <option value="models/gemini-2.5-flash-native-audio-preview-12-2025">Gemini 2.5 Flash Native Audio (Preview)</option>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Source Language (You Speak)</span>
+                    <select id="sourceLang" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
+                        <option value="en-US">English (English - en-US)</option>
+                        <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
+                        <option value="ur-PK">Urdu (اردو - ur-PK)</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="flex flex-col">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Source Language</span>
-                        <select id="sourceLang" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
-                            <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col text-right">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target</span>
-                        <span class="mt-2 text-sm font-semibold text-slate-300 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
-                            🇬🇧 English
-                        </span>
-                    </div>
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Language (Gemini Speaks)</span>
+                    <select id="targetLang" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="en-US" selected>English (English - en-US)</option>
+                        <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
+                        <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
+                        <option value="ur-PK">Urdu (اردو - ur-PK)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 🎧 Audio Hardware Selectors (Input & Output Select) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10 bg-slate-950/40 p-5 rounded-2xl border border-slate-900/60">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Input Device (Microphone)</span>
+                    <select id="audioInputSelect" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="default">Default System Microphone</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Output Device (Speaker/Headphones)</span>
+                    <select id="audioOutputSelect" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="default">Default System Speaker</option>
+                    </select>
                 </div>
             </div>
 
@@ -106,22 +117,39 @@
                 </button>
                 <div class="text-center">
                     <h2 id="btnLabel" class="text-base font-bold text-slate-200">Connect & Start</h2>
-                    <p id="connectionStatus" class="text-xs text-slate-500 mt-1">Select source language and tap mic to begin</p>
+                    <p id="connectionStatus" class="text-xs text-slate-500 mt-1">Select languages and hardware, then tap mic to begin</p>
                 </div>
             </div>
 
-            <!-- Live Output Panels -->
+            <!-- Live Output Panels (Current Turn) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10">
                 <div class="bg-slate-950/80 border border-slate-900/60 rounded-2xl p-5">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">You Spoke</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">You Spoke (Active Turn)</span>
                     <div id="originalText" class="mt-2 h-24 overflow-y-auto text-sm text-slate-300 font-semibold scrollbar-thin leading-relaxed">
-                        Say something in Cantonese or Putonghua...
+                        Say something in selected language...
                     </div>
                 </div>
                 <div class="bg-blue-950/20 border border-blue-900/30 rounded-2xl p-5">
-                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Live English Translation</span>
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Live Translation (Active Turn)</span>
                     <div id="translationOutput" class="mt-2 h-24 overflow-y-auto text-sm text-blue-200 font-bold scrollbar-thin leading-relaxed">
-                        English translation will stream out here...
+                        Translation will stream out here...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📝 Conversation History Record (Input & Output Logs) -->
+            <div class="bg-slate-950/80 border border-slate-900 rounded-2xl p-5 z-10 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        📜 Conversation History Log
+                    </h3>
+                    <button id="clearHistoryBtn" class="text-[10px] font-semibold text-red-400 hover:text-red-300 transition">
+                        Clear History
+                    </button>
+                </div>
+                <div id="historyLog" class="h-48 overflow-y-auto space-y-3 pr-2 scrollbar-thin flex flex-col">
+                    <div class="text-slate-600 text-xs italic text-center my-auto">
+                        No conversations recorded yet. Start speaking to compile scripts.
                     </div>
                 </div>
             </div>
@@ -146,8 +174,10 @@
     <script>
         // UI DOM Nodes
         const apiKeyInput = document.getElementById('apiKeyInput');
-        const modelSelect = document.getElementById('modelSelect');
         const sourceLangSelect = document.getElementById('sourceLang');
+        const targetLangSelect = document.getElementById('targetLang');
+        const audioInputSelect = document.getElementById('audioInputSelect');
+        const audioOutputSelect = document.getElementById('audioOutputSelect');
         const mainActionBtn = document.getElementById('mainActionBtn');
         const btnIcon = document.getElementById('btnIcon');
         const btnLabel = document.getElementById('btnLabel');
@@ -157,6 +187,8 @@
         const translationOutputDiv = document.getElementById('translationOutput');
         const visualizer = document.getElementById('visualizer');
         const visualizerPlaceholder = document.getElementById('visualizerPlaceholder');
+        const historyLogDiv = document.getElementById('historyLog');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
         // Socket and Client State
         let ws = null;
@@ -179,25 +211,91 @@
         let dataArray = null;
         let animationId = null;
 
-        // Load Saved API Key safely on page boot
-        document.addEventListener('DOMContentLoaded', () => {
+        // Script Recording Variables
+        let lastOriginalText = "";
+        let lastTranslatedText = "";
+
+        // Load Saved Configuration safely
+        document.addEventListener('DOMContentLoaded', async () => {
             const savedKey = localStorage.getItem('gemini_live_apikey');
-            if (savedKey) {
-                apiKeyInput.value = savedKey;
-            }
-            const savedModel = localStorage.getItem('gemini_live_model_select');
-            if (savedModel) {
-                modelSelect.value = savedModel;
-            }
+            if (savedKey) apiKeyInput.value = savedKey;
+
+            const savedSourceLang = localStorage.getItem('gemini_live_sourcelang');
+            if (savedSourceLang) sourceLangSelect.value = savedSourceLang;
+
+            const savedTargetLang = localStorage.getItem('gemini_live_targetlang');
+            if (savedTargetLang) targetLangSelect.value = savedTargetLang;
+
+            // Enumerate audio devices on page load
+            await populateAudioDevices();
         });
 
-        // Save key securely as the user inputs it
+        // Save persistent values instantly on input
         apiKeyInput.addEventListener('input', () => {
             localStorage.setItem('gemini_live_apikey', apiKeyInput.value.trim());
         });
-        modelSelect.addEventListener('change', () => {
-            localStorage.setItem('gemini_live_model_select', modelSelect.value);
+        sourceLangSelect.addEventListener('change', () => {
+            localStorage.setItem('gemini_live_sourcelang', sourceLangSelect.value);
         });
+        targetLangSelect.addEventListener('change', () => {
+            localStorage.setItem('gemini_live_targetlang', targetLangSelect.value);
+        });
+        audioOutputSelect.addEventListener('change', () => {
+            if (outputAudioCtx && typeof outputAudioCtx.setSinkId === 'function') {
+                updateOutputDevice(audioOutputSelect.value);
+            }
+        });
+
+        // Populate Audio Input/Output Devices
+        async function populateAudioDevices() {
+            try {
+                // Request temporary permission to reveal hardware labels
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                
+                audioInputSelect.innerHTML = "";
+                audioOutputSelect.innerHTML = "";
+
+                let inputCount = 0;
+                let outputCount = 0;
+
+                devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    
+                    if (device.kind === 'audioinput') {
+                        option.text = device.label || `Microphone ${++inputCount}`;
+                        audioInputSelect.appendChild(option);
+                    } else if (device.kind === 'audiooutput') {
+                        option.text = device.label || `Speaker ${++outputCount}`;
+                        audioOutputSelect.appendChild(option);
+                    }
+                });
+
+                if (audioInputSelect.options.length === 0) {
+                    audioInputSelect.innerHTML = '<option value="default">Default System Microphone</option>';
+                }
+                if (audioOutputSelect.options.length === 0) {
+                    audioOutputSelect.innerHTML = '<option value="default">Default System Speaker</option>';
+                }
+
+                log("Available hardware devices populated successfully.");
+            } catch (err) {
+                log(`Device scan issue: ${err.message}. Using defaults.`);
+            }
+        }
+
+        // Apply selected output speaker node on the fly
+        async function updateOutputDevice(deviceId) {
+            if (outputAudioCtx && typeof outputAudioCtx.setSinkId === 'function') {
+                try {
+                    await outputAudioCtx.setSinkId(deviceId);
+                    log("Audio output routing hardware dynamically updated.");
+                } catch (err) {
+                    log(`Failed to update output device: ${err.message}`);
+                }
+            }
+        }
 
         // Logger helper
         function log(message) {
@@ -206,6 +304,50 @@
             logsDiv.appendChild(row);
             logsDiv.scrollTop = logsDiv.scrollHeight;
         }
+
+        // Script Recording Archiver (Auto-runs when a new sentence begins)
+        function archiveCurrentTurn() {
+            if (!lastOriginalText || lastOriginalText === "Say something in selected language..." || lastOriginalText.trim() === "") return;
+            if (!lastTranslatedText || lastTranslatedText === "Translation will stream out here..." || lastTranslatedText.trim() === "") return;
+
+            // Remove placeholder warning on first script capture
+            if (historyLogDiv.innerText.includes("No conversations recorded yet")) {
+                historyLogDiv.innerHTML = "";
+            }
+
+            const card = document.createElement('div');
+            card.className = "bg-slate-900/60 border border-slate-800/40 p-4 rounded-xl flex flex-col gap-1 text-xs transition duration-150 hover:bg-slate-900";
+            
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const sourceLangName = sourceLangSelect.options[sourceLangSelect.selectedIndex].text.split(' ')[0];
+            const targetLangName = targetLangSelect.options[targetLangSelect.selectedIndex].text.split(' ')[0];
+
+            card.innerHTML = `
+                <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono mb-1">
+                    <span>🕒 ${time}</span>
+                    <span class="bg-blue-950/50 text-blue-400 px-2 py-0.5 rounded-md border border-blue-900/30 font-bold">${sourceLangName} ➡️ ${targetLangName}</span>
+                </div>
+                <div class="text-slate-300 font-medium mt-1 leading-relaxed"><span class="text-slate-500 font-bold">🗣️ You Spoke:</span> ${lastOriginalText}</div>
+                <div class="text-blue-300 font-bold mt-1.5 leading-relaxed"><span class="text-blue-500 font-bold">🎯 Translated:</span> ${lastTranslatedText}</div>
+            `;
+
+            historyLogDiv.appendChild(card);
+            historyLogDiv.scrollTop = historyLogDiv.scrollHeight;
+
+            // Clear buffer
+            lastOriginalText = "";
+            lastTranslatedText = "";
+        }
+
+        // Clear History UI
+        clearHistoryBtn.addEventListener('click', () => {
+            historyLogDiv.innerHTML = `
+                <div class="text-slate-600 text-xs italic text-center my-auto">
+                    No conversations recorded yet. Start speaking to compile scripts.
+                </div>
+            `;
+            log("Conversation log history cleared.");
+        });
 
         // Action Trigger Button click (Start/Stop)
         mainActionBtn.addEventListener('click', async () => {
@@ -278,20 +420,30 @@
                 inputAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
                 outputAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
 
-                // Request Mic permissions
-                micStream = await navigator.mediaDevices.getUserMedia({
+                // Apply selected output speaker device if possible
+                if (audioOutputSelect.value !== 'default' && typeof outputAudioCtx.setSinkId === 'function') {
+                    await outputAudioCtx.setSinkId(audioOutputSelect.value);
+                }
+
+                // Request Mic permissions with chosen input device
+                const constraints = {
                     audio: {
                         channelCount: 1,
                         sampleRate: 16000,
                         echoCancellation: true,
                         noiseSuppression: true
                     }
-                });
+                };
+                if (audioInputSelect.value !== 'default') {
+                    constraints.audio.deviceId = { exact: audioInputSelect.value };
+                }
+
+                micStream = await navigator.mediaDevices.getUserMedia(constraints);
 
                 startVisualizer(micStream);
-                log("Microphone connected successfully.");
+                log("Selected microphone hardware locked successfully.");
 
-                const version = "v1beta"; // Stable default for new audio models
+                const version = "v1beta"; 
                 const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${version}.GenerativeService.BidiGenerateContent?key=${apiKey}`;
                 
                 log(`Connecting to WebSocket Gateway via ${version}...`);
@@ -309,8 +461,10 @@
                 ws.onclose = (event) => {
                     log(`WebSocket disconnected. (Code: ${event.code})`);
                     if (event.code === 1008) {
-                        log("⚠️ Error 1008 (Policy Violation) detected. This model configuration may be restricted on your selected API Version.");
+                        log("⚠️ Error 1008 (Policy Violation) detected. Try changing model parameters or checking your API Key's tier limits.");
                     }
+                    // Archive any residual text on clean shutdown
+                    archiveCurrentTurn();
                     disconnectFromLiveAPI();
                     if (event.code === 1008) updateButtonState('error');
                 };
@@ -332,10 +486,12 @@
         // Transmit Session Parameters Configuration
         function sendInitialSetup() {
             const langName = sourceLangSelect.options[sourceLangSelect.selectedIndex].text;
-            const modelName = modelSelect.value;
+            const targetLangName = targetLangSelect.options[targetLangSelect.selectedIndex].text;
+            const targetLangCode = targetLangSelect.value.split('-')[0]; // Extract zh, en, ur
+            const modelName = "models/gemini-3.5-live-translate-preview"; // Default optimized live translate engine
             
             log(`Configuring translation profile...`);
-            log(`Model Target: ${modelName}`);
+            log(`Interpretation direction: ${langName} ➡️ ${targetLangName}`);
 
             const setupMessage = {
                 setup: {
@@ -350,28 +506,18 @@
                             }
                         }
                     },
-                    // Enable real-time transcription configuration as top-level properties of setup
+                    // Enable real-time transcription configuration
                     inputAudioTranscription: {},
                     outputAudioTranscription: {}
                 }
             };
 
-            // NATIVE TRANSLATION ARCHITECTURE FOR GEMINI 3.5 LIVE TRANSLATE
-            if (modelName === "models/gemini-3.5-live-translate-preview") {
-                setupMessage.setup.generationConfig.translationConfig = {
-                    targetLanguageCode: "en", // Target English natively
-                    echoTargetLanguage: true // Stream output voice back
-                };
-                log("Applied native continuous speech-to-speech configuration (No system prompt required).");
-            } else {
-                // Sibling fallback for standard prompt reasoning dialog models
-                setupMessage.setup.systemInstruction = {
-                    parts: [{
-                        text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
-                    }]
-                };
-                log("Applied standard turn-based prompt engineering profiles.");
-            }
+            // ✅ NATIVE TRANSLATION ARCHITECTURE FOR THE 3.5 TRANSLATE ENGINE
+            setupMessage.setup.generationConfig.translationConfig = {
+                targetLanguageCode: targetLangCode, 
+                echoTargetLanguage: true 
+            };
+            log("Applied continuous speech-to-speech configuration.");
 
             ws.send(JSON.stringify(setupMessage));
             log("Session setup metadata payload transmitted.");
@@ -393,7 +539,7 @@
                     log("Handshake acknowledged! Setup is complete.");
                     isSetupComplete = true;
                     
-                    // Now it is safe to start streaming mic input!
+                    // Safe to start streaming mic input now
                     startStreamingMic();
                     updateButtonState('connected');
                     return;
@@ -411,12 +557,22 @@
 
                     // Extract real-time transcription of what you Spoke (input)
                     if (content.inputTranscription && content.inputTranscription.text) {
-                        originalTextDiv.innerText = content.inputTranscription.text;
+                        const newSpokenText = content.inputTranscription.text;
+                        
+                        // If we are moving on to a brand-new turn, archive the previous turn first
+                        if (lastTranslatedText && lastOriginalText && lastOriginalText !== newSpokenText) {
+                            archiveCurrentTurn();
+                        }
+                        
+                        originalTextDiv.innerText = newSpokenText;
+                        lastOriginalText = newSpokenText;
                     }
 
                     // Extract real-time transcription of Gemini's Translation (output)
                     if (content.outputTranscription && content.outputTranscription.text) {
-                        translationOutputDiv.innerText = content.outputTranscription.text;
+                        const newTranslatedText = content.outputTranscription.text;
+                        translationOutputDiv.innerText = newTranslatedText;
+                        lastTranslatedText = newTranslatedText;
                     }
 
                     if (content.modelTurn && content.modelTurn.parts) {
