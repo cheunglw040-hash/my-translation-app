@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Real-Time Live Translator</title>
+    <!-- Tailwind CSS for elegant design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .glowing-btn-active {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-blue-600/30">
+
+    <!-- Header & Navigation -->
+    <header class="border-b border-slate-900 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⚡</span>
+                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    Gemini Live Translator
+                </h1>
+            </div>
+            <div>
+                <button id="toggleSettings" class="text-sm font-semibold px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 transition">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8 flex flex-col gap-6">
+        
+        <!-- Settings Panel -->
+        <section id="settingsPanel" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hidden transition duration-300">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Credentials & Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2">Google Gemini API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
+                           class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm transition">
+                    <p class="text-[11px] text-slate-500 mt-1">Keys are stored locally in your browser.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2">Live API Endpoint Version</label>
+                    <select id="apiVersion" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-blue-500 text-sm transition">
+                        <option value="v1alpha">v1alpha (Recommended for Live API)</option>
+                        <option value="v1beta">v1beta</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Card -->
+        <section class="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 md:p-8 flex flex-col gap-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-emerald-500/5 pointer-events-none"></div>
+
+            <!-- Configuration Options -->
+            <div class="flex flex-wrap items-center justify-between gap-4 z-10">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Source Language</span>
+                    <select id="sourceLang" class="mt-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
+                        <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col text-right">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Language</span>
+                    <span class="mt-2 text-sm font-semibold text-slate-300 px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl">
+                        🇬🇧 English (en-US)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Visualizer Area -->
+            <div class="h-28 bg-slate-950 rounded-2xl border border-slate-900 relative overflow-hidden flex items-center justify-center">
+                <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
+                <p id="visualizerPlaceholder" class="text-slate-500 text-sm z-10 font-medium">Mic Inactive</p>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-col items-center justify-center gap-4 z-10">
+                <button id="mainActionBtn" class="h-24 w-24 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 flex items-center justify-center shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all duration-300">
+                    <span id="btnIcon" class="text-3xl">🎤</span>
+                </button>
+                <div class="text-center">
+                    <h2 id="btnLabel" class="text-base font-bold text-slate-200">Connect & Start</h2>
+                    <p id="connectionStatus" class="text-xs text-slate-500 mt-1">Select source language and tap mic to begin</p>
+                </div>
+            </div>
+
+            <!-- Live Output Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10">
+                <div class="bg-slate-950/80 border border-slate-900/60 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">System Log</span>
+                    <div id="logs" class="mt-2 h-24 overflow-y-auto text-xs text-slate-400 font-mono space-y-1 scrollbar-thin">
+                        <div>[System] Ready.</div>
+                    </div>
+                </div>
+                <div class="bg-blue-950/20 border border-blue-900/30 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Live English Transcript</span>
+                    <div id="translationOutput" class="mt-2 h-24 overflow-y-auto text-sm text-blue-200 font-medium scrollbar-thin leading-relaxed">
+                        Translations will stream out here dynamically...
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-slate-900 py-6 bg-slate-950">
+        <div class="max-w-5xl mx-auto px-4 text-center text-xs text-slate-600">
+            Built using the Gemini Multimodal Live API over WebSockets. Ensure your API Key has model access to <code class="bg-slate-900 px-1 py-0.5 rounded text-slate-400">gemini-2.0-flash-exp</code>.
+        </div>
+    </footer>
+
+    <!-- WebSocket & Audio Logic Core -->
+    <script>
+        // UI Nodes
+        const toggleSettings = document.getElementById('toggleSettings');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiVersionSelect = document.getElementById('apiVersion');
+        const sourceLangSelect = document.getElementById('sourceLang');
+        const mainActionBtn = document.getElementById('mainActionBtn');
+        const btnIcon = document.getElementById('btnIcon');
+        const btnLabel = document.getElementById('btnLabel');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const logsDiv = document.getElementById('logs');
+        const translationOutputDiv = document.getElementById('translationOutput');
+        const visualizer = document.getElementById('visualizer');
+        const visualizerPlaceholder = document.getElementById('visualizerPlaceholder');
+
+        // State variables
+        let ws = null;
+        let isConnected = false;
+        
+        // Audio State
+        let inputAudioCtx = null;
+        let outputAudioCtx = null;
+        let micStream = null;
+        let micNode = null;
+        
+        // Output Queue for gapless play
+        let activeSources = [];
+        let nextStartTime = 0;
+
+        // Visualizer State
+        let visualizerCtx = null;
+        let analyser = null;
+        let dataArray = null;
+        let animationId = null;
+
+        // Load saved settings
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('gemini_live_apikey');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
+        });
+
+        // Toggle Settings View
+        toggleSettings.addEventListener('click', () => {
+            settingsPanel.classList.toggle('hidden');
+        });
+
+        // Save key on change
+        apiKeyInput.addEventListener('input', () => {
+            localStorage.setItem('gemini_live_apikey', apiKeyInput.value.trim());
+        });
+
+        // Helper: System Log Appender
+        function log(message) {
+            const row = document.createElement('div');
+            row.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(row);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // Action Trigger
+        mainActionBtn.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim();
+            if (!key) {
+                alert('Please provide a Google Gemini API Key in Settings first!');
+                settingsPanel.classList.remove('hidden');
+                return;
+            }
+
+            if (isConnected) {
+                disconnectFromLiveAPI();
+            } else {
+                await connectToLiveAPI(key);
+            }
+        });
+
+        // Audio Helper: Float32 array downsampled to 16-bit Int16 raw PCM bytes
+        function float32ToInt16(float32Array) {
+            const buffer = new ArrayBuffer(float32Array.length * 2);
+            const view = new DataView(buffer);
+            for (let i = 0; i < float32Array.length; i++) {
+                let s = Math.max(-1, Math.min(1, float32Array[i]));
+                const val = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                view.setInt16(i * 2, val, true); // true = Little Endian
+            }
+            return new Uint8Array(buffer);
+        }
+
+        // Audio Helper: Base64 converter
+        function arrayBufferToBase64(uint8Array) {
+            let binary = '';
+            const len = uint8Array.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        // Audio Helper: Convert incoming Int16 Base64 to Playable Float32 arrays
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        function int16ToFloat32(uint8Array) {
+            const int16Array = new Int16Array(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength / 2);
+            const float32Array = new Float32Array(int16Array.length);
+            for (let i = 0; i < int16Array.length; i++) {
+                float32Array[i] = int16Array[i] / 32768.0;
+            }
+            return float32Array;
+        }
+
+        // Connect over WebSockets to Gemini Live
+        async function connectToLiveAPI(apiKey) {
+            updateButtonState('connecting');
+            log("Initializing audio subsystems...");
+            translationOutputDiv.innerText = "";
+
+            try {
+                // Initialize both input and output Audio Contexts on User Gestures
+                inputAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                outputAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+
+                // Request Mic permissions
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: 1,
+                        sampleRate: 16000,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    }
+                });
+
+                startVisualizer(micStream);
+                log("Microphone connected successfully.");
+
+                const version = apiVersionSelect.value;
+                const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${version}.GenerativeService.BidiGenerateContent?key=${apiKey}`;
+                
+                log(`Connecting to WebSocket gateway (${version})...`);
+                ws = new WebSocket(url);
+
+                ws.onopen = () => {
+                    log("WebSocket connection established!");
+                    sendInitialSetup();
+                    startStreamingMic();
+                    updateButtonState('connected');
+                };
+
+                ws.onmessage = async (event) => {
+                    await handleIncomingWSMessage(event);
+                };
+
+                ws.onclose = (event) => {
+                    log(`WebSocket disconnected. (Code: ${event.code})`);
+                    disconnectFromLiveAPI();
+                };
+
+                ws.onerror = (err) => {
+                    log("WebSocket error occurred.");
+                    console.error("WS error:", err);
+                    updateButtonState('error');
+                };
+
+            } catch (err) {
+                log(`Initialization failed: ${err.message}`);
+                console.error(err);
+                disconnectFromLiveAPI();
+                updateButtonState('error');
+            }
+        }
+
+        // Send Configuration payload
+        function sendInitialSetup() {
+            const langCode = sourceLangSelect.value;
+            const langName = sourceLangSelect.options[sourceLangSelect.selectedIndex].text;
+            
+            log(`Configuring session interpreter parameters for: ${langName}`);
+
+            const setupMessage = {
+                setup: {
+                    model: "models/gemini-2.0-flash-exp",
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: {
+                                    voiceName: "Puck" // High-quality natural voice option
+                                }
+                            }
+                        },
+                        systemInstruction: {
+                            parts: [{
+                                text: `You are an expert, real-time simultaneous bilingual interpreter translating spoken ${langName} audio directly to English. Listen to the incoming ${langName} input and speak the exact translated English text back immediately. Do NOT provide comments, explanations, conversational filler, or introductions. Speak strictly the literal translation output in English.`
+                            }]
+                        }
+                    }
+                }
+            };
+
+            ws.send(JSON.stringify(setupMessage));
+            log("Session setup payload transmitted.");
+        }
+
+        // Read and process WebSocket streams
+        async function handleIncomingWSMessage(event) {
+            try {
+                let data;
+                if (event.data instanceof Blob) {
+                    const text = await event.data.text();
+                    data = JSON.parse(text);
+                } else {
+                    data = JSON.parse(event.data);
+                }
+
+                if (data.serverContent) {
+                    const content = data.serverContent;
+
+                    // Stop current output if model was interrupted by client
+                    if (content.interrupted) {
+                        log("Model output interrupted by incoming activity.");
+                        stopAllAudioPlayback();
+                        return;
+                    }
+
+                    if (content.modelTurn && content.modelTurn.parts) {
+                        content.modelTurn.parts.forEach(part => {
+                            // Extract real-time English text transcript if present
+                            if (part.text) {
+                                translationOutputDiv.innerText = part.text;
+                            }
+                            
+                            // Extract output 24kHz audio bytes
+                            if (part.inlineData && part.inlineData.data) {
+                                const rawBytes = base64ToArrayBuffer(part.inlineData.data);
+                                const float32Array = int16ToFloat32(rawBytes);
+                                playAudioChunk(float32Array);
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error processing packet payload:", err);
+            }
+        }
+
+        // Stream captured input
+        function startStreamingMic() {
+            const sourceNode = inputAudioCtx.createMediaStreamSource(micStream);
+            
+            // ScriptProcessor captures 2048 buffers (approx 128ms packets at 16kHz)
+            micNode = inputAudioCtx.createScriptProcessor(2048, 1, 1);
+            
+            micNode.onaudioprocess = (event) => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const inputData = event.inputBuffer.getChannelData(0);
+                    const int16PCM = float32ToInt16(inputData);
+                    const base64Str = arrayBufferToBase64(int16PCM);
+
+                    const mediaMessage = {
+                        realtimeInput: {
+                            mediaChunks: [{
+                                mimeType: "audio/pcm;rate=16000",
+                                data: base64Str
+                            }]
+                        }
+                    };
+                    ws.send(JSON.stringify(mediaMessage));
+                }
+            };
+
+            sourceNode.connect(micNode);
+            micNode.connect(inputAudioCtx.destination);
+            log("Streaming audio packets to WebSocket socket pipeline.");
+        }
+
+        // Gapless scheduler
+        function playAudioChunk(float32Array) {
+            if (!outputAudioCtx) return;
+
+            if (outputAudioCtx.state === 'suspended') {
+                outputAudioCtx.resume();
+            }
+
+            const buffer = outputAudioCtx.createBuffer(1, float32Array.length, 24000);
+            buffer.copyToChannel(float32Array, 0);
+
+            const source = outputAudioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(outputAudioCtx.destination);
+
+            source.onended = () => {
+                activeSources = activeSources.filter(s => s !== source);
+            };
+
+            const now = outputAudioCtx.currentTime;
+            if (nextStartTime < now) {
+                nextStartTime = now;
+            }
+
+            source.start(nextStartTime);
+            activeSources.push(source);
+            nextStartTime += buffer.duration;
+        }
+
+        // Clear playback buffer queues on demand
+        function stopAllAudioPlayback() {
+            activeSources.forEach(src => {
+                try { src.stop(); } catch(e) {}
+            });
+            activeSources = [];
+            nextStartTime = 0;
+        }
+
+        // Cleanup and close
+        function disconnectFromLiveAPI() {
+            log("Disconnecting and closing resources...");
+            stopAllAudioPlayback();
+            stopVisualizer();
+
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+
+            if (micNode) {
+                micNode.disconnect();
+                micNode = null;
+            }
+
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+                micStream = null;
+            }
+
+            if (inputAudioCtx) {
+                inputAudioCtx.close();
+                inputAudioCtx = null;
+            }
+
+            if (outputAudioCtx) {
+                outputAudioCtx.close();
+                outputAudioCtx = null;
+            }
+
+            updateButtonState('disconnected');
+            log("Disconnected.");
+        }
+
+        // Visualizer Draw Core
+        function startVisualizer(stream) {
+            visualizerPlaceholder.classList.add('hidden');
+            const visualContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = visualContext.createMediaStreamSource(stream);
+            analyser = visualContext.createAnalyser();
+            source.connect(analyser);
+            analyser.fftSize = 128;
+            
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            
+            visualizer.width = visualizer.offsetWidth;
+            visualizer.height = visualizer.offsetHeight;
+            visualizerCtx = visualizer.getContext('2d');
+
+            function draw() {
+                animationId = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                visualizerCtx.fillStyle = 'rgb(2, 6, 23)'; // Tailwind slate-950
+                visualizerCtx.fillRect(0, 0, visualizer.width, visualizer.height);
+
+                const barWidth = (visualizer.width / bufferLength) * 2.0;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] * 0.4;
+
+                    // Beautiful neon indigo to teal gradient
+                    const green = Math.min(255, 100 + (i * 4));
+                    const blue = Math.min(255, 200 - (i * 2));
+                    visualizerCtx.fillStyle = `rgb(59, ${green}, ${blue})`;
+                    
+                    visualizerCtx.fillRect(x, visualizer.height - barHeight, barWidth - 2, barHeight);
+                    x += barWidth;
+                }
+            }
+            draw();
+        }
+
+        function stopVisualizer() {
+            visualizerPlaceholder.classList.remove('hidden');
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            if (visualizerCtx) {
+                visualizerCtx.clearRect(0, 0, visualizer.width, visualizer.height);
+            }
+        }
+
+        // Change App states visually
+        function updateButtonState(state) {
+            if (state === 'connected') {
+                isConnected = true;
+                mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-emerald-600 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 active:scale-95 transition-all duration-300 glowing-btn-active";
+                btnIcon.innerText = "🛑";
+                btnLabel.innerText = "Listening Live...";
+                connectionStatus.innerText = "Simultaneous interpretation is running. Speak normally!";
+                connectionStatus.className = "text-xs text-emerald-400 font-semibold mt-1";
+            } else if (state === 'connecting') {
+                mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-amber-600 to-yellow-600 flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300";
+                btnIcon.innerText = "⏳";
+                btnLabel.innerText = "Connecting...";
+                connectionStatus.innerText = "Setting up WebSocket handshake, please wait...";
+                connectionStatus.className = "text-xs text-amber-400 mt-1";
+            } else if (state === 'error') {
+                isConnected = false;
+                mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-red-600 to-rose-600 flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300";
+                btnIcon.innerText = "⚠️";
+                btnLabel.innerText = "Connection Failed";
+                connectionStatus.innerText = "Check your key & network then tap to try again.";
+                connectionStatus.className = "text-xs text-red-400 mt-1";
+            } else {
+                isConnected = false;
+                mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 flex items-center justify-center shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all duration-300";
+                btnIcon.innerText = "🎤";
+                btnLabel.innerText = "Connect & Start";
+                connectionStatus.innerText = "Select source language and tap mic to begin";
+                connectionStatus.className = "text-xs text-slate-500 mt-1";
+            }
+        }
+    </script>
+</body>
+</html>
