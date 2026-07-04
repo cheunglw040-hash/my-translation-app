@@ -112,16 +112,24 @@
             <!-- Live Output Panels -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10">
                 <div class="bg-slate-950/80 border border-slate-900/60 rounded-2xl p-5">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">System Log</span>
-                    <div id="logs" class="mt-2 h-24 overflow-y-auto text-xs text-slate-400 font-mono space-y-1 scrollbar-thin">
-                        <div>[System] Ready.</div>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">You Spoke</span>
+                    <div id="originalText" class="mt-2 h-24 overflow-y-auto text-sm text-slate-300 font-semibold scrollbar-thin leading-relaxed">
+                        Say something in Cantonese or Putonghua...
                     </div>
                 </div>
                 <div class="bg-blue-950/20 border border-blue-900/30 rounded-2xl p-5">
-                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Live English Transcript</span>
-                    <div id="translationOutput" class="mt-2 h-24 overflow-y-auto text-sm text-blue-200 font-medium scrollbar-thin leading-relaxed">
-                        Translations will stream out here dynamically...
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Live English Translation</span>
+                    <div id="translationOutput" class="mt-2 h-24 overflow-y-auto text-sm text-blue-200 font-bold scrollbar-thin leading-relaxed">
+                        English translation will stream out here...
                     </div>
+                </div>
+            </div>
+
+            <!-- Debug Logs -->
+            <div class="bg-slate-950/40 border border-slate-900 rounded-2xl p-4 z-10">
+                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">System Logs</span>
+                <div id="logs" class="mt-1 h-12 overflow-y-auto text-[10px] text-slate-500 font-mono space-y-1">
+                    <div>[System] Ready.</div>
                 </div>
             </div>
         </section>
@@ -146,6 +154,7 @@
         const btnLabel = document.getElementById('btnLabel');
         const connectionStatus = document.getElementById('connectionStatus');
         const logsDiv = document.getElementById('logs');
+        const originalTextDiv = document.getElementById('originalText');
         const translationOutputDiv = document.getElementById('translationOutput');
         const visualizer = document.getElementById('visualizer');
         const visualizerPlaceholder = document.getElementById('visualizerPlaceholder');
@@ -153,7 +162,7 @@
         // Socket and Client State
         let ws = null;
         let isConnected = false;
-        let isSetupComplete = false; // Flag to track initialization handshake status
+        let isSetupComplete = false; 
         
         // Audio Pipeline Nodes
         let inputAudioCtx = null;
@@ -259,6 +268,7 @@
         async function connectToLiveAPI(apiKey) {
             updateButtonState('connecting');
             log("Initializing audio subsystems...");
+            originalTextDiv.innerText = "Listening...";
             translationOutputDiv.innerText = "Connecting...";
             isSetupComplete = false;
 
@@ -289,7 +299,6 @@
                 ws.onopen = () => {
                     log("WebSocket opened. Sending session setup...");
                     sendInitialSetup();
-                    // ⚠️ DO NOT start streaming the mic yet. We must wait for setupComplete!
                 };
 
                 ws.onmessage = async (event) => {
@@ -325,7 +334,7 @@
                 setup: {
                     model: "models/gemini-2.5-flash-preview-native-audio-dialog",
                     generationConfig: {
-                        responseModalities: ["AUDIO"],
+                        responseModalities: ["AUDIO"], // Audio output only inside response modalities
                         speechConfig: {
                             voiceConfig: {
                                 prebuiltVoiceConfig: {
@@ -338,7 +347,10 @@
                         parts: [{
                             text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
                         }]
-                    }
+                    },
+                    // ✅ FIXED: Enable real-time transcription configuration as top-level properties of setup
+                    inputAudioTranscription: {},
+                    outputAudioTranscription: {}
                 }
             };
 
@@ -378,13 +390,18 @@
                         return;
                     }
 
+                    // ✅ FIXED: Extract real-time transcription of what you Spoke (input)
+                    if (content.inputTranscription && content.inputTranscription.text) {
+                        originalTextDiv.innerText = content.inputTranscription.text;
+                    }
+
+                    // ✅ FIXED: Extract real-time transcription of Gemini's Translation (output)
+                    if (content.outputTranscription && content.outputTranscription.text) {
+                        translationOutputDiv.innerText = content.outputTranscription.text;
+                    }
+
                     if (content.modelTurn && content.modelTurn.parts) {
                         content.modelTurn.parts.forEach(part => {
-                            // Extract real-time English text transcript
-                            if (part.text) {
-                                translationOutputDiv.innerText = part.text;
-                            }
-                            
                             // Extract output 24kHz audio bytes
                             if (part.inlineData && part.inlineData.data) {
                                 const rawBytes = base64ToArrayBuffer(part.inlineData.data);
@@ -595,5 +612,4 @@
         }
     </script>
 </body>
-</html>
 </html>
