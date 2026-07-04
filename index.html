@@ -153,6 +153,7 @@
         // Socket and Client State
         let ws = null;
         let isConnected = false;
+        let isSetupComplete = false; // Flag to track initialization handshake status
         
         // Audio Pipeline Nodes
         let inputAudioCtx = null;
@@ -258,7 +259,8 @@
         async function connectToLiveAPI(apiKey) {
             updateButtonState('connecting');
             log("Initializing audio subsystems...");
-            translationOutputDiv.innerText = "Listening...";
+            translationOutputDiv.innerText = "Connecting...";
+            isSetupComplete = false;
 
             try {
                 // Initialize both input/output contexts at target samples
@@ -285,10 +287,9 @@
                 ws = new WebSocket(url);
 
                 ws.onopen = () => {
-                    log("WebSocket handshake secure.");
+                    log("WebSocket opened. Sending session setup...");
                     sendInitialSetup();
-                    startStreamingMic();
-                    updateButtonState('connected');
+                    // ⚠️ DO NOT start streaming the mic yet. We must wait for setupComplete!
                 };
 
                 ws.onmessage = async (event) => {
@@ -328,12 +329,11 @@
                         speechConfig: {
                             voiceConfig: {
                                 prebuiltVoiceConfig: {
-                                    voiceName: "Puck" // Clear, expressive voice
+                                    voiceName: "Puck" 
                                 }
                             }
                         }
                     },
-                    // ✅ FIXED: systemInstruction is now a direct child of setup
                     systemInstruction: {
                         parts: [{
                             text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
@@ -343,7 +343,7 @@
             };
 
             ws.send(JSON.stringify(setupMessage));
-            log("Session setup metadata sent.");
+            log("Session setup metadata payload transmitted.");
         }
 
         // Process incoming binary translation events
@@ -355,6 +355,17 @@
                     data = JSON.parse(text);
                 } else {
                     data = JSON.parse(event.data);
+                }
+
+                // Check for setupComplete signal from the server
+                if (data.setupComplete) {
+                    log("Handshake acknowledged! Setup is complete.");
+                    isSetupComplete = true;
+                    
+                    // Now it is safe to start streaming mic input!
+                    startStreamingMic();
+                    updateButtonState('connected');
+                    return;
                 }
 
                 if (data.serverContent) {
@@ -390,13 +401,18 @@
 
         // Mic streaming processor loop
         function startStreamingMic() {
+            if (!isSetupComplete) {
+                log("Warning: Blocked mic stream attempt before handshake complete.");
+                return;
+            }
+
             const sourceNode = inputAudioCtx.createMediaStreamSource(micStream);
             
             // ScriptProcessor handles audio buffers (2048 buffers ~= 128ms packets at 16kHz)
             micNode = inputAudioCtx.createScriptProcessor(2048, 1, 1);
             
             micNode.onaudioprocess = (event) => {
-                if (ws && ws.readyState === WebSocket.OPEN) {
+                if (ws && ws.readyState === WebSocket.OPEN && isSetupComplete) {
                     const inputData = event.inputBuffer.getChannelData(0);
                     const int16PCM = float32ToInt16(inputData);
                     const base64Str = arrayBufferToBase64(int16PCM);
@@ -415,7 +431,7 @@
 
             sourceNode.connect(micNode);
             micNode.connect(inputAudioCtx.destination);
-            log("Mic capture running. Audio packets streaming to Gemini.");
+            log("Mic recording active. Streaming raw PCM chunks to Google.");
         }
 
         // Play translation audio chunks gaplessly
@@ -461,6 +477,7 @@
             log("Closing streaming connections...");
             stopAllAudioPlayback();
             stopVisualizer();
+            isSetupComplete = false;
 
             if (ws) {
                 ws.close();
@@ -558,7 +575,7 @@
                 mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-amber-600 to-yellow-600 flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300";
                 btnIcon.innerText = "⏳";
                 btnLabel.innerText = "Connecting...";
-                connectionStatus.innerText = "Connecting WebSocket, please wait...";
+                connectionStatus.innerText = "Setting up connection protocol, please wait...";
                 connectionStatus.className = "text-xs text-amber-400 mt-1";
             } else if (state === 'error') {
                 isConnected = false;
@@ -578,4 +595,5 @@
         }
     </script>
 </body>
+</html>
 </html>
