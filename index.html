@@ -51,7 +51,7 @@
     <!-- Main Content Area -->
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8 flex flex-col gap-6">
         
-        <!-- Settings Panel (For Local Storage API Key) -->
+        <!-- Settings Panel -->
         <section id="settingsPanel" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hidden transition duration-300">
             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Credentials & Settings</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -316,7 +316,6 @@
 
         // Transmit Session Parameters Configuration
         function sendInitialSetup() {
-            const langCode = sourceLangSelect.value;
             const langName = sourceLangSelect.options[sourceLangSelect.selectedIndex].text;
             
             log(`Configuring translation profile for: ${langName}`);
@@ -332,12 +331,13 @@
                                     voiceName: "Puck" // Clear, expressive voice
                                 }
                             }
-                        },
-                        systemInstruction: {
-                            parts: [{
-                                text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
-                            }]
                         }
+                    },
+                    // ✅ FIXED: systemInstruction is now a direct child of setup
+                    systemInstruction: {
+                        parts: [{
+                            text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
+                        }]
                     }
                 }
             };
