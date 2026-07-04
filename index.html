@@ -42,7 +42,7 @@
             </div>
             <div>
                 <button id="toggleSettings" class="text-sm font-semibold px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 transition text-blue-400 border-blue-900/30">
-                    ⚙️ Settings & Models
+                    ⚙️ Settings & Keys
                 </button>
             </div>
         </div>
@@ -53,33 +53,19 @@
         
         <!-- Settings Panel -->
         <section id="settingsPanel" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hidden transition duration-300">
-            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Credentials & Model Selector</h3>
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Credentials & Settings</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-2">Google Gemini API Key</label>
                     <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
                            class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm transition">
+                    <p class="text-[11px] text-slate-500 mt-1">Stored only in your browser's private local storage.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-2">Live API Endpoint Version</label>
                     <select id="apiVersion" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-blue-500 text-sm transition">
                         <option value="v1beta">v1beta (Highly Recommended)</option>
                         <option value="v1alpha">v1alpha</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-2">Gemini Live Model Identifier</label>
-                    <input type="text" id="modelIdentifier" placeholder="models/gemini-2.5-flash" value="models/gemini-2.5-flash" 
-                           class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-blue-500 text-sm transition">
-                    <p class="text-[11px] text-slate-500 mt-1">
-                        Try <code class="bg-slate-900 px-1 py-0.5 rounded">models/gemini-2.5-flash</code> or <code class="bg-slate-900 px-1 py-0.5 rounded">models/gemini-2.5-flash</code> if 2.0-exp fails.
-                    </p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-2">Real-Time Text Subtitles</label>
-                    <select id="enableTranscription" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-blue-500 text-sm transition">
-                        <option value="enabled">Enabled (Transcribe input & output)</option>
-                        <option value="disabled">Disabled (Audio output only)</option>
                     </select>
                 </div>
             </div>
@@ -91,18 +77,28 @@
 
             <!-- Configuration Options -->
             <div class="flex flex-wrap items-center justify-between gap-4 z-10">
-                <div class="flex flex-col">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Source Language</span>
-                    <select id="sourceLang" class="mt-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
-                        <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
+                <div class="flex flex-col w-full sm:w-auto">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Live Audio Model</span>
+                    <select id="modelSelect" class="mt-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="models/gemini-3.5-live-translate-preview">Gemini 3.5 Live Translate (models/gemini-3.5-live-translate-preview)</option>
+                        <option value="models/gemini-3.1-flash-live-preview">Gemini 3.1 Flash Live (models/gemini-3.1-flash-live-preview)</option>
+                        <option value="models/gemini-2.5-flash-native-audio-preview-12-2025">Gemini 2.5 Flash Native Audio (models/gemini-2.5-flash-native-audio-preview-12-2025)</option>
                     </select>
                 </div>
-                <div class="flex flex-col text-right">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Language</span>
-                    <span class="mt-2 text-sm font-semibold text-slate-300 px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl">
-                        🇬🇧 English (en-US)
-                    </span>
+                <div class="flex items-center justify-between gap-4 w-full sm:w-auto">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Source Language</span>
+                        <select id="sourceLang" class="mt-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
+                            <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col text-right">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Language</span>
+                        <span class="mt-2.5 text-sm font-semibold text-slate-300 px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl">
+                            🇬🇧 English (en-US)
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -143,7 +139,7 @@
             <div class="bg-slate-950/40 border border-slate-900 rounded-2xl p-4 z-10">
                 <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">System Logs</span>
                 <div id="logs" class="mt-1 h-16 overflow-y-auto text-[10px] text-slate-500 font-mono space-y-1 scrollbar-thin">
-                    <div>[System] Ready. Open settings to customize model parameters.</div>
+                    <div>[System] Ready. Open settings to save your API Key.</div>
                 </div>
             </div>
         </section>
@@ -151,7 +147,7 @@
 
     <footer class="border-t border-slate-900 py-6 bg-slate-950">
         <div class="max-w-5xl mx-auto px-4 text-center text-xs text-slate-600">
-            Secure client-side WebSocket client. Zero parameters are sent to any 3rd-party servers except official Google domains.
+            Secure client-side WebSocket client. Audio data streams directly to Google Cloud without 3rd-party relays.
         </div>
     </footer>
 
@@ -162,8 +158,7 @@
         const settingsPanel = document.getElementById('settingsPanel');
         const apiKeyInput = document.getElementById('apiKeyInput');
         const apiVersionSelect = document.getElementById('apiVersion');
-        const modelIdentifierInput = document.getElementById('modelIdentifier');
-        const enableTranscriptionSelect = document.getElementById('enableTranscription');
+        const modelSelect = document.getElementById('modelSelect');
         const sourceLangSelect = document.getElementById('sourceLang');
         const mainActionBtn = document.getElementById('mainActionBtn');
         const btnIcon = document.getElementById('btnIcon');
@@ -201,14 +196,11 @@
             const savedKey = localStorage.getItem('gemini_live_apikey');
             if (savedKey) apiKeyInput.value = savedKey;
 
-            const savedModel = localStorage.getItem('gemini_live_model');
-            if (savedModel) modelIdentifierInput.value = savedModel;
+            const savedModel = localStorage.getItem('gemini_live_model_select');
+            if (savedModel) modelSelect.value = savedModel;
 
             const savedVersion = localStorage.getItem('gemini_live_version');
             if (savedVersion) apiVersionSelect.value = savedVersion;
-
-            const savedTrans = localStorage.getItem('gemini_live_transcription');
-            if (savedTrans) enableTranscriptionSelect.value = savedTrans;
         });
 
         // Hide/Show settings panel
@@ -220,14 +212,11 @@
         apiKeyInput.addEventListener('input', () => {
             localStorage.setItem('gemini_live_apikey', apiKeyInput.value.trim());
         });
-        modelIdentifierInput.addEventListener('input', () => {
-            localStorage.setItem('gemini_live_model', modelIdentifierInput.value.trim());
+        modelSelect.addEventListener('change', () => {
+            localStorage.setItem('gemini_live_model_select', modelSelect.value);
         });
         apiVersionSelect.addEventListener('change', () => {
             localStorage.setItem('gemini_live_version', apiVersionSelect.value);
-        });
-        enableTranscriptionSelect.addEventListener('change', () => {
-            localStorage.setItem('gemini_live_transcription', enableTranscriptionSelect.value);
         });
 
         // Logger helper
@@ -340,7 +329,7 @@
                 ws.onclose = (event) => {
                     log(`WebSocket disconnected. (Code: ${event.code})`);
                     if (event.code === 1008) {
-                        log("⚠️ Error 1008 (Policy Violation) detected. This model configuration may be restricted or unsupported on your selected API Version.");
+                        log("⚠️ Error 1008 (Policy Violation) detected. This model configuration may be restricted on your selected API Version.");
                     }
                     disconnectFromLiveAPI();
                     if (event.code === 1008) updateButtonState('error');
@@ -360,15 +349,13 @@
             }
         }
 
-// Transmit Session Parameters Configuration
+        // Transmit Session Parameters Configuration
         function sendInitialSetup() {
             const langName = sourceLangSelect.options[sourceLangSelect.selectedIndex].text;
-            // Fallback to the stable 2.0-flash model to ensure v1beta compatibility
-            const modelName = modelIdentifierInput.value.trim() || "models/gemini-2.5-flash";
-            const transOption = enableTranscriptionSelect.value;
+            const modelName = modelSelect.value;
             
             log(`Configuring translation profile...`);
-            log(`Model: ${modelName}`);
+            log(`Model Target: ${modelName}`);
 
             const setupMessage = {
                 setup: {
@@ -383,19 +370,27 @@
                             }
                         }
                     },
-                    systemInstruction: {
-                        parts: [{
-                            text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
-                        }]
-                    }
+                    // ✅ Enable real-time transcription configuration as top-level properties of setup
+                    inputAudioTranscription: {},
+                    outputAudioTranscription: {}
                 }
             };
 
-            // ✅ Correctly inject transcriptions inside generationConfig
-            if (transOption === "enabled") {
-                setupMessage.setup.generationConfig.inputAudioTranscription = {};
-                setupMessage.setup.generationConfig.outputAudioTranscription = {};
-                log("Enabling real-time dual subtitle transcriptions.");
+            // ✅ NATIVE TRANSLATION ARCHITECTURE FOR GEMINI 3.5 LIVE TRANSLATE
+            if (modelName === "models/gemini-3.5-live-translate-preview") {
+                setupMessage.setup.generationConfig.[...](asc_slot://start-slot-19)translationConfig = {
+                    targetLanguageCode: "en", // Target English natively[...](asc_slot://start-slot-20)
+                    echoTargetLanguage: true // Stream output voice back[...](asc_slot://start-slot-21)
+                };
+                log("Applied native continuous speech-to-speech configuration (No system prompt required).");
+            } else {
+                // Sibling fallback for standard prompt reasoning dialog models
+                setupMessage.setup.systemInstruction = {
+                    parts: [{
+                        text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
+                    }]
+                };
+                log("Applied standard turn-based prompt engineering profiles.");
             }
 
             ws.send(JSON.stringify(setupMessage));
@@ -643,7 +638,7 @@
                 mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-red-600 to-rose-600 flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300";
                 btnIcon.innerText = "⚠️";
                 btnLabel.innerText = "Connection Failed";
-                connectionStatus.innerText = "Check your key & configurations in Settings, then tap to retry.";
+                connectionStatus.innerText = "Please check your key & selection configurations then tap to retry.";
                 connectionStatus.className = "text-xs text-red-400 mt-1";
             } else {
                 isConnected = false;
