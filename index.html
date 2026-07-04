@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini Real-Time Live Translator</title>
-    <!-- Tailwind CSS for elegant design -->
+    <!-- Tailwind CSS for elegant styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Pulse animation for active voice visualization */
         @keyframes pulse-ring {
             0% { transform: scale(0.95); opacity: 0.8; }
             50% { transform: scale(1.1); opacity: 0.4; }
@@ -15,11 +16,22 @@
         .glowing-btn-active {
             animation: pulse-ring 2s infinite ease-in-out;
         }
+        /* Custom scrollbar styling */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-blue-600/30">
 
-    <!-- Header & Navigation -->
+    <!-- Header Navigation -->
     <header class="border-b border-slate-900 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -36,9 +48,10 @@
         </div>
     </header>
 
+    <!-- Main Content Area -->
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8 flex flex-col gap-6">
         
-        <!-- Settings Panel -->
+        <!-- Settings Panel (For Local Storage API Key) -->
         <section id="settingsPanel" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hidden transition duration-300">
             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Credentials & Settings</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -46,7 +59,7 @@
                     <label class="block text-xs font-semibold text-slate-400 mb-2">Google Gemini API Key</label>
                     <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
                            class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm transition">
-                    <p class="text-[11px] text-slate-500 mt-1">Keys are stored locally in your browser.</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Stored only in your browser's private local storage.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-2">Live API Endpoint Version</label>
@@ -96,7 +109,7 @@
                 </div>
             </div>
 
-            <!-- Live Output Cards -->
+            <!-- Live Output Panels -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10">
                 <div class="bg-slate-950/80 border border-slate-900/60 rounded-2xl p-5">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">System Log</span>
@@ -116,13 +129,13 @@
 
     <footer class="border-t border-slate-900 py-6 bg-slate-950">
         <div class="max-w-5xl mx-auto px-4 text-center text-xs text-slate-600">
-            Built using the Gemini Multimodal Live API over WebSockets. Ensure your API Key has model access to <code class="bg-slate-900 px-1 py-0.5 rounded text-slate-400">gemini-2.0-flash-exp</code>.
+            This app uses direct WebSockets. Ensure your API Key has access to model <code class="bg-slate-900 px-1 py-0.5 rounded text-slate-400">gemini-2.0-flash-exp</code>.
         </div>
     </footer>
 
-    <!-- WebSocket & Audio Logic Core -->
+    <!-- WebSocket & Audio Processing Core Logic -->
     <script>
-        // UI Nodes
+        // UI DOM Nodes
         const toggleSettings = document.getElementById('toggleSettings');
         const settingsPanel = document.getElementById('settingsPanel');
         const apiKeyInput = document.getElementById('apiKeyInput');
@@ -137,27 +150,27 @@
         const visualizer = document.getElementById('visualizer');
         const visualizerPlaceholder = document.getElementById('visualizerPlaceholder');
 
-        // State variables
+        // Socket and Client State
         let ws = null;
         let isConnected = false;
         
-        // Audio State
+        // Audio Pipeline Nodes
         let inputAudioCtx = null;
         let outputAudioCtx = null;
         let micStream = null;
         let micNode = null;
         
-        // Output Queue for gapless play
+        // Output Queue for gapless playback scheduling
         let activeSources = [];
         let nextStartTime = 0;
 
-        // Visualizer State
+        // Visualizer State Nodes
         let visualizerCtx = null;
         let analyser = null;
         let dataArray = null;
         let animationId = null;
 
-        // Load saved settings
+        // Load API Key safely on load
         document.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('gemini_live_apikey');
             if (savedKey) {
@@ -165,17 +178,17 @@
             }
         });
 
-        // Toggle Settings View
+        // Hide/Show settings panel
         toggleSettings.addEventListener('click', () => {
             settingsPanel.classList.toggle('hidden');
         });
 
-        // Save key on change
+        // Save key securely as the user inputs it
         apiKeyInput.addEventListener('input', () => {
             localStorage.setItem('gemini_live_apikey', apiKeyInput.value.trim());
         });
 
-        // Helper: System Log Appender
+        // Logger helper
         function log(message) {
             const row = document.createElement('div');
             row.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -183,11 +196,11 @@
             logsDiv.scrollTop = logsDiv.scrollHeight;
         }
 
-        // Action Trigger
+        // Action Trigger Button click (Start/Stop)
         mainActionBtn.addEventListener('click', async () => {
             const key = apiKeyInput.value.trim();
             if (!key) {
-                alert('Please provide a Google Gemini API Key in Settings first!');
+                alert('Please click the Settings button and enter your Gemini API Key first!');
                 settingsPanel.classList.remove('hidden');
                 return;
             }
@@ -199,7 +212,7 @@
             }
         });
 
-        // Audio Helper: Float32 array downsampled to 16-bit Int16 raw PCM bytes
+        // Web Audio Helper: Downsample Float32 mic stream to 16-bit Int16 PCM Bytes
         function float32ToInt16(float32Array) {
             const buffer = new ArrayBuffer(float32Array.length * 2);
             const view = new DataView(buffer);
@@ -211,7 +224,7 @@
             return new Uint8Array(buffer);
         }
 
-        // Audio Helper: Base64 converter
+        // Convert base64 stream arrays
         function arrayBufferToBase64(uint8Array) {
             let binary = '';
             const len = uint8Array.byteLength;
@@ -221,7 +234,6 @@
             return window.btoa(binary);
         }
 
-        // Audio Helper: Convert incoming Int16 Base64 to Playable Float32 arrays
         function base64ToArrayBuffer(base64) {
             const binaryString = window.atob(base64);
             const len = binaryString.length;
@@ -232,6 +244,7 @@
             return bytes;
         }
 
+        // Convert incoming 16-bit Int16 raw PCM to playable Float32 arrays
         function int16ToFloat32(uint8Array) {
             const int16Array = new Int16Array(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength / 2);
             const float32Array = new Float32Array(int16Array.length);
@@ -241,14 +254,14 @@
             return float32Array;
         }
 
-        // Connect over WebSockets to Gemini Live
+        // Initialize connection and media pipelines
         async function connectToLiveAPI(apiKey) {
             updateButtonState('connecting');
             log("Initializing audio subsystems...");
-            translationOutputDiv.innerText = "";
+            translationOutputDiv.innerText = "Listening...";
 
             try {
-                // Initialize both input and output Audio Contexts on User Gestures
+                // Initialize both input/output contexts at target samples
                 inputAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
                 outputAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
 
@@ -268,11 +281,11 @@
                 const version = apiVersionSelect.value;
                 const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${version}.GenerativeService.BidiGenerateContent?key=${apiKey}`;
                 
-                log(`Connecting to WebSocket gateway (${version})...`);
+                log(`Connecting to WebSocket Gateway...`);
                 ws = new WebSocket(url);
 
                 ws.onopen = () => {
-                    log("WebSocket connection established!");
+                    log("WebSocket handshake secure.");
                     sendInitialSetup();
                     startStreamingMic();
                     updateButtonState('connected');
@@ -288,25 +301,25 @@
                 };
 
                 ws.onerror = (err) => {
-                    log("WebSocket error occurred.");
-                    console.error("WS error:", err);
+                    log("WebSocket protocol error.");
+                    console.error("WS Error Details:", err);
                     updateButtonState('error');
                 };
 
             } catch (err) {
-                log(`Initialization failed: ${err.message}`);
+                log(`Error connecting: ${err.message}`);
                 console.error(err);
                 disconnectFromLiveAPI();
                 updateButtonState('error');
             }
         }
 
-        // Send Configuration payload
+        // Transmit Session Parameters Configuration
         function sendInitialSetup() {
             const langCode = sourceLangSelect.value;
             const langName = sourceLangSelect.options[sourceLangSelect.selectedIndex].text;
             
-            log(`Configuring session interpreter parameters for: ${langName}`);
+            log(`Configuring translation profile for: ${langName}`);
 
             const setupMessage = {
                 setup: {
@@ -316,13 +329,13 @@
                         speechConfig: {
                             voiceConfig: {
                                 prebuiltVoiceConfig: {
-                                    voiceName: "Puck" // High-quality natural voice option
+                                    voiceName: "Puck" // Clear, expressive voice
                                 }
                             }
                         },
                         systemInstruction: {
                             parts: [{
-                                text: `You are an expert, real-time simultaneous bilingual interpreter translating spoken ${langName} audio directly to English. Listen to the incoming ${langName} input and speak the exact translated English text back immediately. Do NOT provide comments, explanations, conversational filler, or introductions. Speak strictly the literal translation output in English.`
+                                text: `You are a real-time simultaneous bilingual interpreter translating spoken ${langName} directly into clear spoken English. Listen to the incoming ${langName} audio streams and immediately speak ONLY the English translation back. Do not add commentaries, intros, explanations, or conversational filler. Simply act as a vocal pass-through.`
                             }]
                         }
                     }
@@ -330,10 +343,10 @@
             };
 
             ws.send(JSON.stringify(setupMessage));
-            log("Session setup payload transmitted.");
+            log("Session setup metadata sent.");
         }
 
-        // Read and process WebSocket streams
+        // Process incoming binary translation events
         async function handleIncomingWSMessage(event) {
             try {
                 let data;
@@ -347,16 +360,16 @@
                 if (data.serverContent) {
                     const content = data.serverContent;
 
-                    // Stop current output if model was interrupted by client
+                    // Immediately halt outputs if client interrupts AI
                     if (content.interrupted) {
-                        log("Model output interrupted by incoming activity.");
+                        log("Model output interrupted.");
                         stopAllAudioPlayback();
                         return;
                     }
 
                     if (content.modelTurn && content.modelTurn.parts) {
                         content.modelTurn.parts.forEach(part => {
-                            // Extract real-time English text transcript if present
+                            // Extract real-time English text transcript
                             if (part.text) {
                                 translationOutputDiv.innerText = part.text;
                             }
@@ -375,11 +388,11 @@
             }
         }
 
-        // Stream captured input
+        // Mic streaming processor loop
         function startStreamingMic() {
             const sourceNode = inputAudioCtx.createMediaStreamSource(micStream);
             
-            // ScriptProcessor captures 2048 buffers (approx 128ms packets at 16kHz)
+            // ScriptProcessor handles audio buffers (2048 buffers ~= 128ms packets at 16kHz)
             micNode = inputAudioCtx.createScriptProcessor(2048, 1, 1);
             
             micNode.onaudioprocess = (event) => {
@@ -402,10 +415,10 @@
 
             sourceNode.connect(micNode);
             micNode.connect(inputAudioCtx.destination);
-            log("Streaming audio packets to WebSocket socket pipeline.");
+            log("Mic capture running. Audio packets streaming to Gemini.");
         }
 
-        // Gapless scheduler
+        // Play translation audio chunks gaplessly
         function playAudioChunk(float32Array) {
             if (!outputAudioCtx) return;
 
@@ -434,7 +447,7 @@
             nextStartTime += buffer.duration;
         }
 
-        // Clear playback buffer queues on demand
+        // Clean up playing source objects
         function stopAllAudioPlayback() {
             activeSources.forEach(src => {
                 try { src.stop(); } catch(e) {}
@@ -443,9 +456,9 @@
             nextStartTime = 0;
         }
 
-        // Cleanup and close
+        // Shut down connections and streams
         function disconnectFromLiveAPI() {
-            log("Disconnecting and closing resources...");
+            log("Closing streaming connections...");
             stopAllAudioPlayback();
             stopVisualizer();
 
@@ -475,10 +488,10 @@
             }
 
             updateButtonState('disconnected');
-            log("Disconnected.");
+            log("Subsystems offline.");
         }
 
-        // Visualizer Draw Core
+        // Draw Canvas microphone visualizer
         function startVisualizer(stream) {
             visualizerPlaceholder.classList.add('hidden');
             const visualContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -498,7 +511,7 @@
                 animationId = requestAnimationFrame(draw);
                 analyser.getByteFrequencyData(dataArray);
 
-                visualizerCtx.fillStyle = 'rgb(2, 6, 23)'; // Tailwind slate-950
+                visualizerCtx.fillStyle = 'rgb(2, 6, 23)'; // slate-950 background
                 visualizerCtx.fillRect(0, 0, visualizer.width, visualizer.height);
 
                 const barWidth = (visualizer.width / bufferLength) * 2.0;
@@ -508,7 +521,7 @@
                 for (let i = 0; i < bufferLength; i++) {
                     barHeight = dataArray[i] * 0.4;
 
-                    // Beautiful neon indigo to teal gradient
+                    // Futuristic teal-to-blue neon visual bars
                     const green = Math.min(255, 100 + (i * 4));
                     const blue = Math.min(255, 200 - (i * 2));
                     visualizerCtx.fillStyle = `rgb(59, ${green}, ${blue})`;
@@ -520,6 +533,7 @@
             draw();
         }
 
+        // Reset visualizer canvas
         function stopVisualizer() {
             visualizerPlaceholder.classList.remove('hidden');
             if (animationId) {
@@ -531,7 +545,7 @@
             }
         }
 
-        // Change App states visually
+        // Toggle UI states visually
         function updateButtonState(state) {
             if (state === 'connected') {
                 isConnected = true;
@@ -544,14 +558,14 @@
                 mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-amber-600 to-yellow-600 flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300";
                 btnIcon.innerText = "⏳";
                 btnLabel.innerText = "Connecting...";
-                connectionStatus.innerText = "Setting up WebSocket handshake, please wait...";
+                connectionStatus.innerText = "Connecting WebSocket, please wait...";
                 connectionStatus.className = "text-xs text-amber-400 mt-1";
             } else if (state === 'error') {
                 isConnected = false;
                 mainActionBtn.className = "h-24 w-24 rounded-full bg-gradient-to-r from-red-600 to-rose-600 flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300";
                 btnIcon.innerText = "⚠️";
                 btnLabel.innerText = "Connection Failed";
-                connectionStatus.innerText = "Check your key & network then tap to try again.";
+                connectionStatus.innerText = "Check your key & internet, then tap to retry.";
                 connectionStatus.className = "text-xs text-red-400 mt-1";
             } else {
                 isConnected = false;
