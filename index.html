@@ -40,70 +40,61 @@
                     Gemini Live Translator
                 </h1>
             </div>
-            <div>
-                <button id="toggleSettings" class="text-sm font-semibold px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 transition text-blue-400 border-blue-900/30">
-                    ⚙️ Settings & Keys
-                </button>
+            <div class="text-xs text-emerald-400 font-semibold bg-emerald-950/30 border border-emerald-900/30 px-3 py-1.5 rounded-xl">
+                Free Key Compatible
             </div>
         </div>
     </header>
 
     <!-- Main Content Area -->
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8 flex flex-col gap-6">
-        
-        <!-- Settings Panel -->
-        <section id="settingsPanel" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hidden transition duration-300">
-            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Credentials & Settings</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-2">Google Gemini API Key</label>
-                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
-                           class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm transition">
-                    <p class="text-[11px] text-slate-500 mt-1">Stored only in your browser's private local storage.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-2">Live API Endpoint Version</label>
-                    <select id="apiVersion" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-blue-500 text-sm transition">
-                        <option value="v1beta">v1beta (Highly Recommended)</option>
-                        <option value="v1alpha">v1alpha</option>
-                    </select>
-                </div>
-            </div>
-        </section>
 
         <!-- Main Dashboard Card -->
-        <section class="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 md:p-8 flex flex-col gap-8 shadow-2xl relative overflow-hidden">
+        <section class="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-emerald-500/5 pointer-events-none"></div>
 
+            <!-- 🔑 API Credentials Card (Now Always Visible) -->
+            <div class="bg-slate-950/80 border border-slate-900 rounded-2xl p-5 z-10">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    🔑 Security Credentials
+                </h3>
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[11px] font-semibold text-slate-500">Google Gemini API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="Enter your AIzaSy... API key here" 
+                           class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm transition">
+                    <p class="text-[10px] text-slate-600">Saved securely on your local computer's private storage, never sent to GitHub.</p>
+                </div>
+            </div>
+
             <!-- Configuration Options -->
-            <div class="flex flex-wrap items-center justify-between gap-4 z-10">
-                <div class="flex flex-col w-full sm:w-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 z-10 bg-slate-950/40 p-5 rounded-2xl border border-slate-900/60">
+                <div class="flex flex-col">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Live Audio Model</span>
-                    <select id="modelSelect" class="mt-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option value="models/gemini-3.5-live-translate-preview">Gemini 3.5 Live Translate (models/gemini-3.5-live-translate-preview)</option>
-                        <option value="models/gemini-3.1-flash-live-preview">Gemini 3.1 Flash Live (models/gemini-3.1-flash-live-preview)</option>
-                        <option value="models/gemini-2.5-flash-native-audio-preview-12-2025">Gemini 2.5 Flash Native Audio (models/gemini-2.5-flash-native-audio-preview-12-2025)</option>
+                    <select id="modelSelect" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="models/gemini-3.5-live-translate-preview">Gemini 3.5 Live Translate (Preview)</option>
+                        <option value="models/gemini-3.1-flash-live-preview">Gemini 3.1 Flash Live (Preview)</option>
+                        <option value="models/gemini-2.5-flash-native-audio-preview-12-2025">Gemini 2.5 Flash Native Audio (Preview)</option>
                     </select>
                 </div>
-                <div class="flex items-center justify-between gap-4 w-full sm:w-auto">
+                <div class="grid grid-cols-2 gap-3">
                     <div class="flex flex-col">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Source Language</span>
-                        <select id="sourceLang" class="mt-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <select id="sourceLang" class="mt-1.5 bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
                             <option value="zh-HK">Cantonese (廣東話 - zh-HK)</option>
                             <option value="zh-CN">Putonghua (普通話 - zh-CN)</option>
                         </select>
                     </div>
                     <div class="flex flex-col text-right">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Language</span>
-                        <span class="mt-2.5 text-sm font-semibold text-slate-300 px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl">
-                            🇬🇧 English (en-US)
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Target</span>
+                        <span class="mt-2 text-sm font-semibold text-slate-300 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center">
+                            🇬🇧 English
                         </span>
                     </div>
                 </div>
             </div>
 
             <!-- Visualizer Area -->
-            <div class="h-28 bg-slate-950 rounded-2xl border border-slate-900 relative overflow-hidden flex items-center justify-center">
+            <div class="h-28 bg-slate-950 rounded-2xl border border-slate-900 relative overflow-hidden flex items-center justify-center z-10">
                 <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
                 <p id="visualizerPlaceholder" class="text-slate-500 text-sm z-10 font-medium">Mic Inactive</p>
             </div>
@@ -139,7 +130,7 @@
             <div class="bg-slate-950/40 border border-slate-900 rounded-2xl p-4 z-10">
                 <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">System Logs</span>
                 <div id="logs" class="mt-1 h-16 overflow-y-auto text-[10px] text-slate-500 font-mono space-y-1 scrollbar-thin">
-                    <div>[System] Ready. Open settings to save your API Key.</div>
+                    <div>[System] Ready. Enter your API Key and tap the mic icon to launch translator.</div>
                 </div>
             </div>
         </section>
@@ -154,10 +145,7 @@
     <!-- WebSocket & Audio Processing Core Logic -->
     <script>
         // UI DOM Nodes
-        const toggleSettings = document.getElementById('toggleSettings');
-        const settingsPanel = document.getElementById('settingsPanel');
         const apiKeyInput = document.getElementById('apiKeyInput');
-        const apiVersionSelect = document.getElementById('apiVersion');
         const modelSelect = document.getElementById('modelSelect');
         const sourceLangSelect = document.getElementById('sourceLang');
         const mainActionBtn = document.getElementById('mainActionBtn');
@@ -191,32 +179,24 @@
         let dataArray = null;
         let animationId = null;
 
-        // Load Saved Configuration safely
+        // Load Saved API Key safely on page boot
         document.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('gemini_live_apikey');
-            if (savedKey) apiKeyInput.value = savedKey;
-
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
             const savedModel = localStorage.getItem('gemini_live_model_select');
-            if (savedModel) modelSelect.value = savedModel;
-
-            const savedVersion = localStorage.getItem('gemini_live_version');
-            if (savedVersion) apiVersionSelect.value = savedVersion;
+            if (savedModel) {
+                modelSelect.value = savedModel;
+            }
         });
 
-        // Hide/Show settings panel
-        toggleSettings.addEventListener('click', () => {
-            settingsPanel.classList.toggle('hidden');
-        });
-
-        // Save persistent values instantly on input
+        // Save key securely as the user inputs it
         apiKeyInput.addEventListener('input', () => {
             localStorage.setItem('gemini_live_apikey', apiKeyInput.value.trim());
         });
         modelSelect.addEventListener('change', () => {
             localStorage.setItem('gemini_live_model_select', modelSelect.value);
-        });
-        apiVersionSelect.addEventListener('change', () => {
-            localStorage.setItem('gemini_live_version', apiVersionSelect.value);
         });
 
         // Logger helper
@@ -231,8 +211,8 @@
         mainActionBtn.addEventListener('click', async () => {
             const key = apiKeyInput.value.trim();
             if (!key) {
-                alert('Please click the Settings button and enter your Gemini API Key first!');
-                settingsPanel.classList.remove('hidden');
+                alert('Please enter your Gemini API Key in the "Security Credentials" box at the top of the card!');
+                apiKeyInput.focus();
                 return;
             }
 
@@ -311,7 +291,7 @@
                 startVisualizer(micStream);
                 log("Microphone connected successfully.");
 
-                const version = apiVersionSelect.value;
+                const version = "v1beta"; // Stable default for new audio models
                 const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${version}.GenerativeService.BidiGenerateContent?key=${apiKey}`;
                 
                 log(`Connecting to WebSocket Gateway via ${version}...`);
@@ -370,17 +350,17 @@
                             }
                         }
                     },
-                    // ✅ Enable real-time transcription configuration as top-level properties of setup
+                    // Enable real-time transcription configuration as top-level properties of setup
                     inputAudioTranscription: {},
                     outputAudioTranscription: {}
                 }
             };
 
-            // ✅ NATIVE TRANSLATION ARCHITECTURE FOR GEMINI 3.5 LIVE TRANSLATE
+            // NATIVE TRANSLATION ARCHITECTURE FOR GEMINI 3.5 LIVE TRANSLATE
             if (modelName === "models/gemini-3.5-live-translate-preview") {
-                setupMessage.setup.generationConfig.[...](asc_slot://start-slot-19)translationConfig = {
-                    targetLanguageCode: "en", // Target English natively[...](asc_slot://start-slot-20)
-                    echoTargetLanguage: true // Stream output voice back[...](asc_slot://start-slot-21)
+                setupMessage.setup.generationConfig.translationConfig = {
+                    targetLanguageCode: "en", // Target English natively
+                    echoTargetLanguage: true // Stream output voice back
                 };
                 log("Applied native continuous speech-to-speech configuration (No system prompt required).");
             } else {
